@@ -3,47 +3,71 @@ if(!window.cf){
 }
 
 cf.modal = function(selector){
-
   return new Modal(selector)
-
 };
 
 
 class Modal {
 
-  constructor(selector){
-    this.openButtons = document.querySelectorAll(selector);
+  constructor(selector) {
+    this.selector = selector;
+    this.currentTargetID;
+    this.openButtons;
+    this.contentNodes;
     this.modal;
+    this.modalContent;
+    this.modalCover;
+    this.modalCoverImage;
     this.closeButton;
-    this.contentNode;
+    this.nextButton;
+    this.previousButton;
 
     this.setupDOM();
   }
 
-  setupDOM(){
-    console.log('setting up DOM');
+  setupDOM() {
 
-    this.renderModal();
+    this.addModalToDOM();
 
-    for (let button of this.openButtons) {
-      button.addEventListener('click', this.open.bind(this));
+    // Setup open buttons
+    this.openButtons =
+      document.querySelectorAll('[data-modal-target="' + this.selector + '"]') || document.querySelectorAll('[modal-target="' + this.selector + '"]');
+
+    if (this.openButtons.length !== 0){
+      for (let button of this.openButtons) {
+        button.addEventListener('click', this.open.bind(this));
+      }
+    } else {
+      console.warn('No open buttons attached to cf-modal with selector ' + this.selector);
     }
+
+    // Setup content nodes
+    this.contentNodes = document.querySelectorAll(this.selector);
+    if (this.contentNodes.length !== 0) {
+
+    } else {
+      console.warn('No cf-modals attached with selector ' + this.selector);
+    }
+
+    window.contentNodes = this.contentNodes;
 
     this.modal = document.querySelector('.cf-modal');
     this.modalContent = this.modal.querySelector('.cf-modal__content');
     this.modalCover = this.modal.querySelector('.cf-modal__cover');
     this.modalCoverImage = this.modal.querySelector('.cf-modal__cover__image');
-    this.closeButton = document.querySelector('.cf-modal__controls__close');
-    this.closeButton.addEventListener('click', this.close.bind(this));
 
-    this.nextButton = document.querySelector('.cf-modal__controls__next');
+    this.closeButton = this.modal.querySelector('.cf-modal__controls__close');
+    this.nextButton = this.modal.querySelector('.cf-modal__controls__next');
+    this.previousButton = this.modal.querySelector('.cf-modal__controls__previous');
+
+    this.closeButton.addEventListener('click', this.close.bind(this));
     this.nextButton.addEventListener('click', this.next.bind(this));
-    this.previousButton = document.querySelector('.cf-modal__controls__previous');
     this.previousButton.addEventListener('click', this.previous.bind(this));
+
   }
 
 
-  renderModal(){
+  addModalToDOM(){
     const modalTemplate = `
     <div class="cf-modal">
       <div class="cf-modal__frame">
@@ -149,7 +173,7 @@ class Modal {
   }
 
   next(){
-    const nextContentNode = this.getContentNode('next');
+    const nextContentNode = this.getNextContentNode();
     if(nextContentNode){
       this.modal.classList.remove('loaded');
       window.setTimeout(() => {
@@ -160,7 +184,7 @@ class Modal {
   }
 
   previous(){
-    const nextContentNode = this.getContentNode('previous');
+    const nextContentNode = this.getPreviousContentNode();
     if(nextContentNode){
       this.modal.classList.remove('loaded');
       window.setTimeout(() => {
@@ -169,44 +193,38 @@ class Modal {
     }
   }
 
-  getContentNode(direction){
+  getContentNodeWithID(id){
+    return Array.from(this.contentNodes).find((contentNode) => {
+      return contentNode.getAttribute('modalId') == id ||
+      contentNode.dataset.modalId == id
+    })
+  }
 
-    if(direction !== 'next' && direction !== 'previous'){
-      console.log('No direction supplied to getModal, returning null')
-      return null;
-    }
+  getNextContentNode(){
+    return this.getContentNodeWithID(Number(this.currentTargetID) + 1);
+  }
 
-    if(this.contentNode && this.contentNode.dataset.id){
-      const currentID = this.contentNode.dataset.id;
+  getPreviousContentNode(){
+    return this.getContentNodeWithID(Number(this.currentTargetID) - 1)
+  }
 
-      const nextID = direction == 'next' ?
-        Number(currentID) + 1 :
-        Number(currentID) - 1 ;
-
-      const nextContentNode = document.querySelector('[data-id="' + nextID + '"]');
-
-      console.log(nextContentNode, nextID);
-
-      if(nextContentNode){
-        return nextContentNode;
-      }
-    }
-
-    return null;
-
+  isModalInSequence(){
+    return this.contentNodes.length > 1;
   }
 
   loadFromContentNode(contentNode){
 
     this.contentNode = contentNode;
+    this.currentTargetID = contentNode.getAttribute("modalId") ||
+    contentNode.dataset.modalId;
 
-    if(this.getContentNode('next')){
+    if(this.getNextContentNode()){
       this.nextButton.classList.remove('cf-hidden');
     } else {
       this.nextButton.classList.add('cf-hidden');
     }
 
-    if(this.getContentNode('previous')){
+    if(this.getPreviousContentNode()){
       this.previousButton.classList.remove('cf-hidden');
     } else {
       this.previousButton.classList.add('cf-hidden');
@@ -232,10 +250,21 @@ class Modal {
 
   open(event){
 
-    this.modal.classList.add('active');
-
     const clickedNode = event.target;
-    const contentNode = document.querySelector(clickedNode.dataset.target);
+    let targetID =
+      clickedNode.getAttribute("modalTargetId") ||
+      clickedNode.dataset.modalTargetId;
+
+    let contentNode;
+
+    // Get the right content node
+    if (targetID) {
+      contentNode = this.getContentNodeWithID(targetID);
+    } else {
+      contentNode = this.contentNodes[0];
+    }
+
+    this.modal.classList.add('active');
     this.loadFromContentNode(contentNode);
 
   }
