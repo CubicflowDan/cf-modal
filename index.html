@@ -1,0 +1,53 @@
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CF Modal</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+  <!--
+  <div
+    class="cf-modal"
+    data-id="1"
+    data-cover="http://cubicflow.com/assets/img/snapshots/fullsize/orders.jpg"
+  >
+  </div>
+  -->
+
+  <div id="cf-modal-target" data-id="1"
+  data-cover="http://cubicflow.com/assets/img/snapshots/fullsize/orders.jpg">
+    <h5>Acri Muller Consulting</h5>
+    <p>Here are a some images from current and past projects to give you a good look at the kind of work we do.</p>
+  </div>
+
+    <div id="cf-modal-target" data-id="2"
+    data-cover="http://cubicflow.com/assets/img/snapshots/fullsize/acrimuller-webpresence.jpg">
+      <h5>Modal #2</h5>
+      <p>Here are a some images from current and past projects to give you a good look at the kind of work we do.</p>
+    </div>
+
+  <div id="cf-modal-target2" data-id="3">
+    <h5>Acri Muller Consulting 2</h5>
+    <p>Here are a some images from current and past projects to give you a good look at the kind of work we do.</p>
+  </div>
+
+  <a href="#" class="cf-modal-open" data-target="#cf-modal-target">
+    Open Modal
+  </a>
+
+  <br>
+
+  <a href="#" class="cf-modal-open" data-target="#cf-modal-target2">
+    Open Modal 2
+  </a>
+
+
+  <script src="cf-modal.js"></script>
+  <script>
+    cf.modal(".cf-modal-open");
+  </script>
+
+</body>
+</html>
